@@ -50,9 +50,9 @@ This will trigger the rendering view for the selected file using the built-in re
 3. **Build the extension**
 
    ```bash
-   yarn build
+   yarn compile
    # or
-   npm run build
+   npm run compile
    ```
 
 4. **Launch in VS Code**
@@ -66,9 +66,7 @@ This will trigger the rendering view for the selected file using the built-in re
 
 | Task           | Command        | Description                             |
 | -------------- | -------------- | --------------------------------------- |
-| Install deps   | `yarn install` | Installs all dependencies               |
-| Build          | `yarn build`   | Compiles TypeScript to `out/` directory |
-| Watch          | `yarn watch`   | Rebuilds on file changes                |
+| Build          | `yarn compile` | Compiles TypeScript to `out/` directory |
 | Start Dev Host | `yarn start`   | Opens a VS Code dev window              |
 
 *Replace `yarn` with `npm` if needed.*
