@@ -35,6 +35,6 @@ packages/
 node_modules/
 *.vsix
 .vscode/
-*.mjs
 
 dist/
+/.vscode-test.mjs
