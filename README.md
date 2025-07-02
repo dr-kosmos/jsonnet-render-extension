@@ -1,4 +1,4 @@
-# Jsonnet Render Extension 🎯
+# Jsonnet Render Extension 🎯 <img src="images/logo.png" alt="Logo" width="24" style="vertical-align: middle;" />
 
 A VS Code extension for rendering jsonnet (`.jsonnet`) files directly inside the editor.
 
@@ -11,6 +11,8 @@ A VS Code extension for rendering jsonnet (`.jsonnet`) files directly inside the
 * Seamlessly integrates with the VS Code sidebar
 * Compares the rendered output of the current file with the Git-tracked version
 * Handles imported `.libsonnet` files by evaluating against a temporary Git worktree
+
+> ⚠️ Git must be installed and the project must be a Git repository to use the **Render & Compare** feature.
 
 ---
 
@@ -35,6 +37,7 @@ Right-click on any `.jsonnet` or `.libsonnet` file in the **File Explorer**, and
 * [jq](https://stedolan.github.io/jq/) – JSON CLI processor
 * [yq](https://github.com/mikefarah/yq) – YAML processor
 * [Jsonnet](https://jsonnet.org/) – Data templating language
+* [Git](https://git-scm.com/) – Required for the diff feature
 
 ### Setup
 
