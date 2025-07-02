@@ -26,7 +26,6 @@ function execCommand(command: string, args: string[] = [], input?: string): Prom
   });
 }
 
-
 async function checkCommandAvailable(command: string): Promise<boolean> {
   try {
     await execCommand(command, ['--version']);
@@ -34,6 +33,16 @@ async function checkCommandAvailable(command: string): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+function getLocalTimestamp(): string {
+  const now = new Date();
+  const pad = (n: number) => n.toString().padStart(2, '0');
+
+  const date = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+  const time = `${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+
+  return `${date}_${time}`;
 }
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -113,7 +122,8 @@ export async function activate(context: vscode.ExtensionContext) {
       }
 
       const originalName = path.basename(filePath, path.extname(filePath));
-      const virtualFilename = `rendered_${originalName}.yaml`;
+      const timestamp = getLocalTimestamp();
+      const virtualFilename = `rendered_${timestamp}_${originalName}.yaml`;
       const virtualUri = vscode.Uri.parse(`rendered:${virtualFilename}`);
 
       // Register YAML content for this virtual doc
