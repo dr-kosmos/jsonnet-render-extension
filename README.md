@@ -8,6 +8,7 @@ A VS Code extension for rendering jsonnet (`.jsonnet`) files directly inside the
 
 * Auto-detects `.jsonnet` and `.libsonnet` files
 * Provides a live rendering panel
+* Live preview panel that updates on save
 * Seamlessly integrates with the VS Code sidebar
 * Compares the rendered output of the current file with the Git-tracked version
 * Handles imported `.libsonnet` files by evaluating against a temporary Git worktree
@@ -22,9 +23,11 @@ Right-click on any `.jsonnet` or `.libsonnet` file in the **File Explorer**, and
 
 > **Render Jsonnet file**
 > **Render & Compare with Git Version**
+> **Live Preview Jsonnet file**
 
 * **Render Jsonnet file**: Renders the selected file to YAML and opens a virtual document.
 * **Render & Compare**: Renders the file using the current working state and the last committed Git version (including all imports), and opens a diff view.
+* **Live Preview**: Opens a side-by-side panel that automatically refreshes when the file is saved.
 
 ---
 

@@ -49,3 +49,34 @@ export function getLocalTimestamp(): string {
 export async function convertToYaml(doc: string): Promise<string> {
   return await execCommand('yq', ['-P'], JSON.stringify(doc));
 }
+
+export async function renderJsonnetToYaml(filePath: string): Promise<string> {
+  const jsonOutput = await execCommand('jsonnet', [filePath]);
+
+  let parsed: any;
+  try {
+    parsed = JSON.parse(jsonOutput);
+  } catch (err) {
+    throw new Error('Failed to parse JSON output from jsonnet.');
+  }
+
+  let documents: any[] = [];
+  if (Array.isArray(parsed)) {
+    documents = parsed;
+  } else if (parsed.items && Array.isArray(parsed.items)) {
+    documents = parsed.items;
+  } else {
+    documents = [parsed];
+  }
+
+  let yamlOutput = '';
+  for (let i = 0; i < documents.length; i++) {
+    const yaml = await convertToYaml(documents[i]);
+    yamlOutput += yaml;
+    if (i < documents.length - 1) {
+      yamlOutput += '\n---\n';
+    }
+  }
+
+  return yamlOutput;
+}

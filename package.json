@@ -11,7 +11,11 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onCommand:jsonnetRenderer.renderFile",
+    "onCommand:jsonnetRenderer.renderAndCompare",
+    "onCommand:jsonnetRenderer.livePreview"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
@@ -22,6 +26,10 @@
       {
         "command": "jsonnetRenderer.renderAndCompare",
         "title": "Render Jsonnet and get diff"
+      },
+      {
+        "command": "jsonnetRenderer.livePreview",
+        "title": "Live Preview Jsonnet"
       }
     ],
     "menus": {
@@ -35,6 +43,11 @@
           "command": "jsonnetRenderer.renderAndCompare",
           "when": "resourceExtname == .jsonnet || resourceExtname == .libsonnet",
           "group": "__jsonnet@2"
+        },
+        {
+          "command": "jsonnetRenderer.livePreview",
+          "when": "resourceExtname == .jsonnet || resourceExtname == .libsonnet",
+          "group": "__jsonnet@3"
         }
       ]
     }

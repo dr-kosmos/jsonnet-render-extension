@@ -23,20 +23,31 @@ export async function activate(context: vscode.ExtensionContext) {
   }
 
   const virtualDocs = new Map<string, string>();
+  const previewSessions = new Map<string, { virtualUri: vscode.Uri; watcher: vscode.Disposable }>();
 
-  const provider = vscode.workspace.registerTextDocumentContentProvider('rendered', {
+  const changeEmitter = new vscode.EventEmitter<vscode.Uri>();
+  const provider: vscode.TextDocumentContentProvider = {
+    onDidChange: changeEmitter.event,
     provideTextDocumentContent(uri: vscode.Uri): string | Thenable<string> {
       return virtualDocs.get(uri.toString()) || '';
     }
-  });
+  };
+  const providerDisposable = vscode.workspace.registerTextDocumentContentProvider('rendered', provider);
 
   vscode.workspace.onDidCloseTextDocument((doc) => {
     if (doc.uri.scheme === 'rendered') {
       virtualDocs.delete(doc.uri.toString());
+      for (const [file, session] of previewSessions) {
+        if (session.virtualUri.toString() === doc.uri.toString()) {
+          session.watcher.dispose();
+          previewSessions.delete(file);
+          break;
+        }
+      }
     }
   });
 
-  context.subscriptions.push(provider);
+  context.subscriptions.push(providerDisposable);
 
   const disposable = vscode.commands.registerCommand('jsonnetRenderer.renderFile', async (uri: vscode.Uri) => {
     const filePath = uri.fsPath;
@@ -47,38 +58,7 @@ export async function activate(context: vscode.ExtensionContext) {
     }
 
     try {
-      const jsonOutput = await utils.execCommand('jsonnet', [filePath]);
-
-      // Try to detect what structure we’re dealing with
-      let parsed: any;
-      try {
-        parsed = JSON.parse(jsonOutput);
-      } catch (err) {
-        throw new Error("Failed to parse JSON output from jsonnet.");
-      }
-
-      let documents: any[] = [];
-
-      if (Array.isArray(parsed)) {
-        documents = parsed;
-      } else if (parsed.items && Array.isArray(parsed.items)) {
-        documents = parsed.items;
-      } else {
-        documents = [parsed];
-      }
-
-      // Convert each document to YAML
-      let yamlOutput = '';
-      let first = false;
-      for (const doc of documents) {
-        const yaml = await utils.convertToYaml(doc);
-        if (first === false) {
-          yamlOutput += `${yaml}\n---\n`;
-        }
-        else {
-          first = false;
-        }
-      }
+      const yamlOutput = await utils.renderJsonnetToYaml(filePath);
 
       const originalName = path.basename(filePath, path.extname(filePath));
       const timestamp = utils.getLocalTimestamp();
@@ -159,7 +139,46 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   });
 
+  const livePreviewDisposable = vscode.commands.registerCommand('jsonnetRenderer.livePreview', async (uri: vscode.Uri) => {
+    const filePath = uri.fsPath;
+
+    if (!filePath.endsWith('.jsonnet') && !filePath.endsWith('.libsonnet')) {
+      vscode.window.showErrorMessage('Not a Jsonnet/libsonnet file.');
+      return;
+    }
+
+    let session = previewSessions.get(filePath);
+    if (!session) {
+      const sanitized = filePath.replace(/[^a-z0-9]/gi, '_');
+      const virtualUri = vscode.Uri.parse(`rendered:live_${sanitized}.yaml`);
+      const watcher = vscode.workspace.onDidSaveTextDocument(async (doc) => {
+        if (doc.uri.fsPath === filePath) {
+          try {
+            const yaml = await utils.renderJsonnetToYaml(filePath);
+            virtualDocs.set(virtualUri.toString(), yaml);
+            changeEmitter.fire(virtualUri);
+          } catch (err: any) {
+            vscode.window.showErrorMessage(`Render failed: ${err.message}`);
+          }
+        }
+      });
+      context.subscriptions.push(watcher);
+      session = { virtualUri, watcher };
+      previewSessions.set(filePath, session);
+    }
+
+    try {
+      const yamlOutput = await utils.renderJsonnetToYaml(filePath);
+      virtualDocs.set(session.virtualUri.toString(), yamlOutput);
+      const doc = await vscode.workspace.openTextDocument(session.virtualUri);
+      vscode.window.showTextDocument(doc, { preview: false, viewColumn: vscode.ViewColumn.Beside });
+    } catch (err: any) {
+      vscode.window.showErrorMessage(`Render failed: ${err.message}`);
+    }
+  });
+
   context.subscriptions.push(compareDisposable);
+  context.subscriptions.push(livePreviewDisposable);
   context.subscriptions.push(disposable);
 }
 
