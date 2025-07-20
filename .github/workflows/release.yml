@@ -33,9 +33,8 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: extension
-      - run: mv "${{ steps.download.outputs.download-path }}/jsonnet-renderer.vsix" ./
       - uses: softprops/action-gh-release@v1
         with:
           files: |
-            jsonnet-renderer.vsix
+            ${{ steps.download.outputs.download-path }}/jsonnet-renderer.vsix
             scripts/bootstrap.ps1
