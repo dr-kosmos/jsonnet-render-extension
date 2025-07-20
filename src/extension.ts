@@ -2,7 +2,7 @@ import * as os from 'os';
 import * as fs from 'fs/promises';
 import * as vscode from 'vscode';
 import * as path from 'path';
-import * as utils from './utillities';
+import * as utils from './utilities';
 
 export async function activate(context: vscode.ExtensionContext) {
   const commandsToCheck = ['jsonnet', 'jq', 'yq'];
