@@ -2,7 +2,7 @@
   "name": "jsonnet-renderer",
   "displayName": "Jsonnet renderer",
   "description": "Render .jsonnet or .libsonnet into yaml",
-  "version": "0.2.0",
+  "version": "1.0.2",
   "icon": "images/logo.png",
   "publisher": "dr. kosmos",
   "engines": {
@@ -71,16 +71,16 @@
     "test": "vscode-test"
   },
   "devDependencies": {
-    "@types/vscode": "^1.101.0",
+    "@types/vscode": "^1.102.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "20.x",
-    "@typescript-eslint/eslint-plugin": "^8.31.1",
-    "@typescript-eslint/parser": "^8.31.1",
-    "eslint": "^9.25.1",
-    "esbuild": "^0.25.3",
+    "@typescript-eslint/eslint-plugin": "^8.37.0",
+    "@typescript-eslint/parser": "^8.37.0",
+    "eslint": "^9.31.0",
+    "esbuild": "^0.25.8",
     "npm-run-all": "^4.1.5",
     "typescript": "^5.8.3",
-    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-cli": "^0.0.11",
     "@vscode/test-electron": "^2.5.2"
   }
 }
