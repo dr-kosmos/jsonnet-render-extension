@@ -31,6 +31,9 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: extension
+      - uses: actions/checkout@v4
       - uses: softprops/action-gh-release@v1
         with:
-          files: jsonnet-renderer.vsix
+          files: |
+            jsonnet-renderer.vsix
+            scripts/bootstrap.ps1

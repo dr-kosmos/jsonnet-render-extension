@@ -64,8 +64,9 @@ Right-click on any `.jsonnet` or `.libsonnet` file in the **File Explorer**, and
    ```
 
 This script fetches `jq.exe`, `yq.exe` and extracts `jsonnet.exe` from the official
-`go-jsonnet` tarball if they are missing. The `scripts\bin` directory is added to
-your `PATH` for convenience.
+`go-jsonnet` tarball if they are missing. It also downloads and installs the latest
+`jsonnet-renderer` extension (`.vsix` file) from this repository's releases. The
+`scripts\bin` directory is added to your `PATH` for convenience.
 
 4. **Build the extension**
 
