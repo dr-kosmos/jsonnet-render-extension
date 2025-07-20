@@ -29,10 +29,11 @@ jobs:
     needs: build
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+      - id: download
+        uses: actions/download-artifact@v4
         with:
           name: extension
-      - run: mv extension/jsonnet-renderer.vsix ./
+      - run: mv "${{ steps.download.outputs.download-path }}/jsonnet-renderer.vsix" ./
       - uses: softprops/action-gh-release@v1
         with:
           files: |
