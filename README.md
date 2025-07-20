@@ -57,13 +57,23 @@ Right-click on any `.jsonnet` or `.libsonnet` file in the **File Explorer**, and
    npm install
    ```
 
-3. **Build the extension**
+3. **Download CLI tools (Windows only)**
+
+   ```powershell
+   scripts/bootstrap.ps1
+   ```
+
+This script fetches `jq.exe`, `yq.exe` and extracts `jsonnet.exe` from the official
+`go-jsonnet` tarball if they are missing. The `scripts\bin` directory is added to
+your `PATH` for convenience.
+
+4. **Build the extension**
 
    ```bash
    npm run compile
    ```
 
-4. **Launch in VS Code**
+5. **Launch in VS Code**
 
    Press `F5` inside VS Code to open a new Extension Development Host.
    Open a `.jsonnet` file and enjoy the render panel or compare feature.
