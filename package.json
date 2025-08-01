@@ -2,7 +2,7 @@
   "name": "jsonnet-renderer",
   "displayName": "Jsonnet renderer",
   "description": "Render .jsonnet or .libsonnet into yaml",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "icon": "images/logo.png",
   "publisher": "dr. kosmos",
   "engines": {

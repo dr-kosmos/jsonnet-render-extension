@@ -4,6 +4,13 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as utils from './utilities';
 
+interface WorktreeInfo {
+  path: string;
+  commit: string;
+}
+
+const headWorktrees = new Map<string, WorktreeInfo>();
+
 export async function activate(context: vscode.ExtensionContext) {
   const commandsToCheck = ['jsonnet', 'jq', 'yq'];
   const missing: string[] = [];
@@ -93,14 +100,30 @@ export async function activate(context: vscode.ExtensionContext) {
     const relativePath = path.relative(workspaceFolder.uri.fsPath, filePath).replace(/\\/g, '/');
     const base = path.basename(filePath, path.extname(filePath));
 
-    // Create a unique worktree directory
-    const tempWorktreePath = path.join(os.tmpdir(), `jsonnet-head-${Date.now()}-${Math.random().toString(36).substring(2)}`);
+    const headCommit = await utils.execCommand('git', ['rev-parse', 'HEAD'], undefined, workspaceFolder.uri.fsPath);
+
+    let tempWorktreePath: string;
+    let createdWorktree = false;
+    const cached = headWorktrees.get(workspaceFolder.uri.fsPath);
+    if (cached && cached.commit === headCommit) {
+      tempWorktreePath = cached.path;
+    } else {
+      if (cached) {
+        try {
+          await utils.execCommand('git', ['worktree', 'remove', '--force', cached.path], undefined, workspaceFolder.uri.fsPath);
+          await fs.rm(cached.path, { recursive: true, force: true });
+        } catch (cleanupErr) {
+          console.warn('Failed to clean up cached worktree:', cleanupErr);
+        }
+      }
+      tempWorktreePath = path.join(os.tmpdir(), `jsonnet-head-${Date.now()}-${Math.random().toString(36).substring(2)}`);
+      await utils.execCommand('git', ['worktree', 'add', tempWorktreePath, headCommit], undefined, workspaceFolder.uri.fsPath);
+      headWorktrees.set(workspaceFolder.uri.fsPath, { path: tempWorktreePath, commit: headCommit });
+      createdWorktree = true;
+    }
 
     try {
-      // Step 1: Create Git worktree at HEAD
-      await utils.execCommand('git', ['worktree', 'add', tempWorktreePath, 'HEAD'], undefined, workspaceFolder.uri.fsPath);
-
-      // Step 2: Find equivalent file path in the worktree
+      // Step 1: Find equivalent file path in the worktree
       const headFilePath = path.join(tempWorktreePath, relativePath);
 
       // Step 3: Render the file from the worktree
@@ -113,15 +136,7 @@ export async function activate(context: vscode.ExtensionContext) {
       const currentParsed = JSON.parse(currentJson);
       const currentYaml = await utils.convertToYaml(currentParsed);
 
-      // Step 5: Clean up the worktree
-      try {
-        await utils.execCommand('git', ['worktree', 'remove', '--force', tempWorktreePath], undefined, workspaceFolder.uri.fsPath);
-        await fs.rm(tempWorktreePath, { recursive: true, force: true });
-      } catch (cleanupErr) {
-        console.warn('Failed to fully clean up worktree:', cleanupErr);
-      }
-
-      // Step 6: Open diff view
+      // Step 5: Open diff view
       const timestamp = utils.getLocalTimestamp();
       const uriA = vscode.Uri.parse(`rendered:original_${timestamp}_${base}.yaml`);
       const uriB = vscode.Uri.parse(`rendered:current_${timestamp}_${base}.yaml`);
@@ -133,9 +148,13 @@ export async function activate(context: vscode.ExtensionContext) {
 
     } catch (err: any) {
       vscode.window.showErrorMessage(`Compare failed: ${err.message}`);
-      try {
-        await fs.rm(tempWorktreePath, { recursive: true, force: true });
-      } catch {}
+      if (createdWorktree) {
+        try {
+          await utils.execCommand('git', ['worktree', 'remove', '--force', tempWorktreePath], undefined, workspaceFolder.uri.fsPath);
+          await fs.rm(tempWorktreePath, { recursive: true, force: true });
+          headWorktrees.delete(workspaceFolder.uri.fsPath);
+        } catch {}
+      }
     }
   });
 
@@ -184,4 +203,11 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(disposable);
 }
 
-export function deactivate() { }
+export async function deactivate() {
+  for (const [workspacePath, info] of headWorktrees) {
+    try {
+      await utils.execCommand('git', ['worktree', 'remove', '--force', info.path], undefined, workspacePath);
+      await fs.rm(info.path, { recursive: true, force: true });
+    } catch {}
+  }
+}
