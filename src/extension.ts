@@ -151,9 +151,11 @@ export async function activate(context: vscode.ExtensionContext) {
     if (!session) {
       const sanitized = filePath.replace(/[^a-z0-9]/gi, '_');
       const virtualUri = vscode.Uri.parse(`rendered:live_${sanitized}.yaml`);
+      let deps = await utils.collectJsonnetDependencies(filePath);
       const watcher = vscode.workspace.onDidSaveTextDocument(async (doc) => {
-        if (doc.uri.fsPath === filePath) {
+        if (doc.uri.fsPath === filePath || deps.has(doc.uri.fsPath)) {
           try {
+            deps = await utils.collectJsonnetDependencies(filePath);
             const yaml = await utils.renderJsonnetToYaml(filePath);
             virtualDocs.set(virtualUri.toString(), yaml);
             changeEmitter.fire(virtualUri);
