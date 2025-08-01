@@ -1,5 +1,7 @@
 
 import * as cp from 'child_process';
+import * as fs from 'fs/promises';
+import * as path from 'path';
 
 export function execCommand(command: string, args: string[] = [], input?: string, cwd?: string): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -79,4 +81,28 @@ export async function renderJsonnetToYaml(filePath: string): Promise<string> {
   }
 
   return yamlOutput;
+}
+
+export async function collectJsonnetDependencies(filePath: string, seen: Set<string> = new Set()): Promise<Set<string>> {
+  if (seen.has(filePath)) {
+    return seen;
+  }
+  seen.add(filePath);
+
+  let content: string;
+  try {
+    content = await fs.readFile(filePath, 'utf-8');
+  } catch {
+    return seen;
+  }
+
+  const dir = path.dirname(filePath);
+  const regex = /\bimport(?:str|bin)?(?:\s*\(\s*)?["']([^"']+)["']\s*\)?/g;
+  let match: RegExpExecArray | null;
+  while ((match = regex.exec(content)) !== null) {
+    const rel = match[1];
+    const dep = path.resolve(dir, rel);
+    await collectJsonnetDependencies(dep, seen);
+  }
+  return seen;
 }
