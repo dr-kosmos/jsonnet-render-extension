@@ -59,7 +59,10 @@ Right-click on any `.jsonnet` or `.libsonnet` file in the **File Explorer**, and
 
 3. **Download CLI tools (Windows only)**
 
+   Open PowerShell **as Administrator**, allow unsigned scripts for the current session, and then run:
+
    ```powershell
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
    scripts/bootstrap.ps1
    ```
 
