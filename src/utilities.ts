@@ -101,8 +101,20 @@ export async function collectJsonnetDependencies(filePath: string, seen: Set<str
   let match: RegExpExecArray | null;
   while ((match = regex.exec(content)) !== null) {
     const rel = match[1];
-    const dep = path.resolve(dir, rel);
-    await collectJsonnetDependencies(dep, seen);
+    const base = path.resolve(dir, rel);
+    const candidates = [base];
+    if (!path.extname(base)) {
+      candidates.push(`${base}.jsonnet`, `${base}.libsonnet`);
+    }
+    for (const candidate of candidates) {
+      try {
+        await fs.access(candidate);
+        await collectJsonnetDependencies(candidate, seen);
+        break;
+      } catch {
+        // ignore missing candidates
+      }
+    }
   }
   return seen;
 }
